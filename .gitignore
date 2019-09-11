@@ -1,3 +1,8 @@
+# Metals
+.bloop
+.metals/
+metals.sbt
+
 # Dropbox settings and caches
 .dropbox
 .dropbox.attr

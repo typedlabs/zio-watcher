@@ -17,8 +17,10 @@ addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
 lazy val zioWatcher = (project in file("."))
     .settings(
       name := "zio-watcher",
-      version := "0.1.0",
+      version := "0.0.1",
       scalaVersion := "2.12.8",
+      scalacOptions -= "-Yno-imports",
+      scalacOptions -= "-Xfatal-warnings",
       crossScalaVersions := Seq(scalaVersion.value, "2.11.8"),
       bintrayRepository := "releases",
       bintrayOrganization := Some("typedlabs"),
