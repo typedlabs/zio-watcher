@@ -1,11 +1,11 @@
-package zio.watcher
+package com.typedlabs.zio.watcher
 
 import java.nio.file._
 
 import com.sun.nio.file.SensitivityWatchEventModifier
-import zio.ZIO
 import zio.blocking.Blocking
 import zio.stream.Stream
+import zio.{UIO, ZIO}
 
 import scala.concurrent.duration._
 
@@ -56,7 +56,6 @@ object Watcher {
     */
   def fromFileSystem(fs: FileSystem): ZIO[Blocking, Throwable, Watcher] = {
     fromWatchService(fs.newWatchService)
-    //ZIO.effect(fs.newWatchService).bracket(ws => UIO.effectTotal(ws.close()))(DefaultWatcher.fromWatchService)
   }
 
   /**
@@ -66,8 +65,8 @@ object Watcher {
     * @return
     */
   def fromWatchService(ws: WatchService): ZIO[Blocking, Throwable, Watcher] = {
-    //ZIO.effect(ws).bracket(ws => UIO.effectTotal(ws.close()))(DefaultWatcher.fromWatchService)
-    DefaultWatcher.fromWatchService(ws)
+    ZIO.effect(ws).bracket(ws => UIO.effectTotal(ws.close()))(DefaultWatcher.fromWatchService)
+//    DefaultWatcher.fromWatchService(ws)
   }
 
 }

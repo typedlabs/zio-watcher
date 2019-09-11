@@ -1,15 +1,15 @@
-package zio.watcher
+package com.typedlabs.zio.watcher
 
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.TimeUnit
 
+import com.typedlabs.zio.watcher.DefaultWatcher.Registration
 import log.effect.LogWriter
 import log.effect.zio.ZioLogWriter
 import org.log4s._
 import zio.blocking.Blocking
 import zio.stream.Stream
-import zio.watcher.DefaultWatcher.Registration
 import zio.{UIO, _}
 
 import scala.collection.JavaConverters._

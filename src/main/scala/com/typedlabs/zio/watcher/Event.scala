@@ -1,4 +1,4 @@
-package zio.watcher
+package com.typedlabs.zio.watcher
 
 import java.nio.file.{Path, StandardWatchEventKinds, WatchEvent}
 

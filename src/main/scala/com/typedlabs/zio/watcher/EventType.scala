@@ -1,10 +1,10 @@
-package zio.watcher
+package com.typedlabs.zio.watcher
 
 import java.nio.file.{StandardWatchEventKinds, WatchEvent}
 
 /** Type of event raised by `Watcher`. Supports the standard events types as well as arbitrary non-standard types (via `NonStandard`). */
-sealed trait EventType
-object EventType {
+private[watcher] sealed trait EventType
+private[watcher] object EventType {
   final case object Created extends EventType
   final case object Deleted extends EventType
   final case object Modified extends EventType

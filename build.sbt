@@ -1,5 +1,6 @@
 inThisBuild(
   List(
+    onChangedBuildSource := ReloadOnSourceChanges,
     organization := "com.typedlabs",
     homepage := Some(url("https://github.com/typedlabs/zio-watcher/")),
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -17,7 +18,7 @@ addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
 lazy val zioWatcher = (project in file("."))
     .settings(
       name := "zio-watcher",
-      version := "0.0.1",
+      version := "0.0.3",
       scalaVersion := "2.12.8",
       scalacOptions -= "-Yno-imports",
       scalacOptions -= "-Xfatal-warnings",
