@@ -21,7 +21,7 @@ trait Watcher extends Serializable {
     * @param types event types to register for; if `Nil`, all standard event types are registered
     * @param modifiers modifiers to pass to the underlying `WatchService` when registering
     * @param pollTimeout how often should underlying filesystem be pooled for changes
-    * @return Stream of events
+    * @return
     */
   def watch(path: Path,
             types: Seq[EventType] = Nil,

@@ -12,7 +12,7 @@ object Event {
   final case class NonStandard(event: WatchEvent[_], registeredDirectory: Path) extends Event
 
   /**
-    * Converts a NIO `WatchEvent` to an ZIO `Watcher.Event`.
+    * Converts a NIO `WatchEvent` to a ZIO `Watcher.Event`.
     *
     * @param e event to convert
     * @param registeredDirectory path of the directory for which the event's path is relative

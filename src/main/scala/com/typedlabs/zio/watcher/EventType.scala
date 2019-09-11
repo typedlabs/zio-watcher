@@ -11,6 +11,11 @@ object EventType {
   final case object Overflow extends EventType
   final case class NonStandard(kind: WatchEvent.Kind[_]) extends EventType
 
+  /**
+    * Converts ZIO `Watcher.EventType` into a NIO `StandardWatchEventKinds`
+    *
+    * @param et ZIO event type to convert
+    */
   def toWatchEventKind(et: EventType): WatchEvent.Kind[_] = et match {
     case EventType.Created           => StandardWatchEventKinds.ENTRY_CREATE
     case EventType.Modified          => StandardWatchEventKinds.ENTRY_MODIFY

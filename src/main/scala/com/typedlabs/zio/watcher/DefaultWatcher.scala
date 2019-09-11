@@ -15,12 +15,28 @@ import zio.{UIO, _}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
+/**
+  * NIO based filesystem watcher
+  *
+  * @param ws watch service with which watches will be registered
+  * @param registrations a ZIO Ref for registring watches
+  * @param logger
+  */
 private[watcher] class DefaultWatcher(ws: WatchService, registrations: Ref[Map[WatchKey, Registration]], logger: LogWriter[Task])
     extends Watcher {
 
   private[this] val defaultEventTypes =
     List(EventType.Created, EventType.Deleted, EventType.Modified, EventType.Overflow)
 
+  /**
+    * Watches specified path for events.
+    *
+    * @param path file o§r directory to watch for events
+    * @param types event types to register for; if `Nil`, all standard event types are registered
+    * @param modifiers modifiers to pass to the underlying `WatchService` when registering
+    * @param pollTimeout how often should underlying filesystem be pooled for changes
+    * @return
+    */
   override def watch(path: Path,
                      types: Seq[EventType],
                      modifiers: Seq[WatchEvent.Modifier],
@@ -31,15 +47,34 @@ private[watcher] class DefaultWatcher(ws: WatchService, registrations: Ref[Map[W
     } *> Task.effect(events(pollTimeout))
   }
 
-  private def isDir(p: Path): ZIO[Blocking, Throwable, Boolean] =
+  /**
+    * Checks if a path is a directory
+    *
+    * @param path to be checked
+    */
+  private def isDir(path: Path): ZIO[Blocking, Throwable, Boolean] =
     ZIO.accessM { blocking =>
-      blocking.blocking.effectBlocking(Files.isDirectory(p))
+      blocking.blocking.effectBlocking(Files.isDirectory(path))
     }
 
-  private def track(key: WatchKey, r: DefaultWatcher.Registration): UIO[Unit] = {
-    registrations.update(x => x.updated(key, r)).unit
+  /**
+    * Updates internal state with a tracked registration
+    *
+    * @param key refrence to the underlying watch
+    * @param registration internal registration state
+    */
+  private def track(key: WatchKey, registration: DefaultWatcher.Registration): UIO[Unit] = {
+    registrations.update(x => x.updated(key, registration)).unit
   }
 
+  /**
+    * Registers a path with NIO watch service
+    *
+    * @param path to be watched
+    * @param types types of events watcher should register
+    * @param modifiers that qualifies how a watch is registered
+    * @return
+    */
   private def registerUnTracked(path: Path,
                                 types: Seq[EventType],
                                 modifiers: Seq[WatchEvent.Modifier]): ZIO[Blocking, Throwable, WatchKey] =
@@ -53,10 +88,24 @@ private[watcher] class DefaultWatcher(ws: WatchService, registrations: Ref[Map[W
       }
     }
 
+  /**
+    * Lifts a watched key cancellation
+    *
+    * @param key for which watch should be cancelled
+    * @return
+    */
   private def cancelWatch(key: WatchKey) = {
     UIO.effectTotal(key.cancel())
   }
 
+  /**
+    * Registers a directory and it's child directories to be watched
+    *
+    * @param path a directory to be watched
+    * @param types types of events watcher should register
+    * @param modifiers that qualifies how a watch is registered
+    * @return
+    */
   private def watchDirectory(path: Path, types: Seq[EventType], modifiers: Seq[WatchEvent.Modifier]): ZIO[Blocking, Throwable, Unit] =
     ZIO.accessM { blocking =>
       val (supplementedTypes, suppressCreated) =
@@ -104,6 +153,14 @@ private[watcher] class DefaultWatcher(ws: WatchService, registrations: Ref[Map[W
       r.unit
     }
 
+  /**
+    * Registers a specific file to be watches
+    *
+    * @param path a specific file to be watched
+    * @param types types of events watcher should register
+    * @param modifiers that qualifies how a watch is registered
+    * @return
+    */
   private def watchFile(path: Path, types: Seq[EventType], modifiers: Seq[WatchEvent.Modifier]): ZIO[Blocking, Throwable, Unit] = {
     val registered = registerUnTracked(path.getParent, types, modifiers).flatMap(
       key =>
@@ -122,6 +179,11 @@ private[watcher] class DefaultWatcher(ws: WatchService, registrations: Ref[Map[W
     registered
   }
 
+  /**
+    * Cancels all registred watches
+    *
+    * @return
+    */
   private def cancelRegistrations: UIO[Unit] = {
     val result = for {
       _ <- logger.debug("Cancelling up registrations.")
@@ -215,6 +277,13 @@ private[watcher] object DefaultWatcher {
                                 suppressCreated: Boolean,
                                 cleanup: UIO[Unit])
 
+
+  /**
+    * Creates a ZIO watcher from a NIO WatchService
+    *
+    * @param ws watch service with which watches will be registered
+    * @return
+    */
   def fromWatchService(ws: WatchService): ZIO[Blocking, Exception, Watcher] = {
     for {
       registrations <- Ref.make(Map.empty[WatchKey, Registration])
